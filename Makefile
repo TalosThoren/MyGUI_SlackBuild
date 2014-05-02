@@ -50,9 +50,9 @@ getsource:
 		if [ "${ARCH}" = "x86_64" ]; then\
 			if [ -n "${SOURCE_URL_64}" ]; then\
 				wget "${SOURCE_URL_64}";\
-			else\
-				wget "${SOURCE_URL_32}";\
 			fi;\
+		else\
+			wget "${SOURCE_URL_32}";\
 		fi;\
 	fi
 
