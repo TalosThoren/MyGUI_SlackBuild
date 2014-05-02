@@ -24,8 +24,8 @@ ${TAR_NAME}: ${TMP_DIR}
 	cp ${CURDIR}/doinst.sh ${TMP_DIR}
 	cp ${CURDIR}/slack-desc ${TMP_DIR}
 	cp ${CURDIR}/README ${TMP_DIR}
-	cp ${CURDIR}/MyGUI.info ${TMP_DIR}
-	cp ${CURDIR}/MyGUI.SlackBuild ${TMP_DIR}
+	cp ${CURDIR}/${APP_NAME}.info ${TMP_DIR}
+	cp ${CURDIR}/${APP_NAME}.SlackBuild ${TMP_DIR}
 	cd _tmp && tar cvf ${TAR_NAME} ${APP_NAME}
 
 ${TMP_DIR}:
