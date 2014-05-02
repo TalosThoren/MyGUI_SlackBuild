@@ -1,25 +1,57 @@
+# Makefile used to test and package SlackBuild scripts
+
+# Copyright Talos Thoren <talosthoren@gmail.com>
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 SHELL := /bin/bash
+ARCH := `uname -m`
 APP_NAME := MyGUI
 TAR_NAME := ${APP_NAME}.tar
 ARCHIVE_NAME := ${TAR_NAME}.gz
 TMP_DIR := ${CURDIR}/_tmp/${APP_NAME}
 CHECK_DIR := ${CURDIR}/_dist
-SOURCE_URL_32 := `awk '!/DOWNLOAD_x86_64/ {print}' ${APP_NAME}.info | awk -F'"' '/DOWNLOAD/ {print $$2}'`
+SOURCE_URL_32 := `awk -F'"' '/DOWNLOAD=/ {print $$2}' ${APP_NAME}.info`
+SOURCE_URL_64 := `awk -F'"' '/DOWNLOAD_x86_64/ {print $$2}' ${APP_NAME}.info`
+SOURCE_ARCHIVE := ${APP_NAME}\_${VERSION}*.zip
 VERSION := 3.2.0
-SOURCE_ARCHIVE := ${APP_NAME}\_${VERSION}.zip
 
 default: dist
 
-distcheck: dist
+distcheck: dist getsource
 	-mkdir ${CHECK_DIR}
-	cp ${ARCHIVE_NAME} ${CHECK_DIR}
+	-cp ${ARCHIVE_NAME} ${CHECK_DIR}
 	cd ${CHECK_DIR} && tar xvzf ${ARCHIVE_NAME}
-	if [ ! -e ./${SOURCE_ARCHIVE} ]; then \
-		wget ${SOURCE_URL_32};\
-	fi
-	cp ${SOURCE_ARCHIVE} ${CHECK_DIR}/${APP_NAME}
+	-cp ${SOURCE_ARCHIVE} ${CHECK_DIR}/${APP_NAME}
 	cd ${CHECK_DIR}/${APP_NAME} && sh ./${APP_NAME}.SlackBuild
 	${MAKE} clean
+
+getsource:
+	if [ ! -e ${SOURCE_ARCHIVE} ]; then\
+		if [ "${ARCH}" = "x86_64" ]; then\
+			if [ -n "${SOURCE_URL_64}" ]; then\
+				wget "${SOURCE_URL_64}";\
+			else\
+				wget "${SOURCE_URL_32}";\
+			fi;\
+		fi;\
+	fi
 
 dist: ${ARCHIVE_NAME} cleantmp
 
@@ -48,4 +80,4 @@ ${TAR_NAME}: ${TMP_DIR}
 ${TMP_DIR}:
 	-mkdir -p ${TMP_DIR}
 
-.PHONY: default dist distcheck cleantmp clean
+.PHONY: default dist distcheck getsource cleantmp clean
