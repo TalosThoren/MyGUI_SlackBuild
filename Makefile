@@ -34,6 +34,9 @@ VERSION := 3.2.0
 
 default: dist
 
+check: getsource
+	sh ./${APP_NAME}.SlackBuild
+
 distcheck: dist getsource
 	-mkdir ${CHECK_DIR}
 	-cp ${ARCHIVE_NAME} ${CHECK_DIR}
