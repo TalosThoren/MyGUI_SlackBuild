@@ -47,10 +47,8 @@ distcheck: dist getsource
 
 getsource:
 	if [ ! -e ${SOURCE_ARCHIVE} ]; then\
-		if [ "${ARCH}" = "x86_64" ]; then\
-			if [ -n "${SOURCE_URL_64}" ]; then\
-				wget "${SOURCE_URL_64}";\
-			fi;\
+		if [[ ("${ARCH}" = "x86_64") && (-n "${SOURCE_URL_64}") ]]; then\
+			wget "${SOURCE_URL_64}";\
 		else\
 			wget "${SOURCE_URL_32}";\
 		fi;\
