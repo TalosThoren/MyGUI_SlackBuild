@@ -23,26 +23,24 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 PRGNAM=MyGUI
-VERSION=${VERSION:-3.2.0}
+VERSION=${VERSION:-3.2.1}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
-# Automatically determine the architecture we're building on:
 if [ -z "$ARCH" ]; then
   case "$( uname -m )" in
     i?86) ARCH=i486 ;;
     arm*) ARCH=arm ;;
-# Unless $ARCH is already set, use uname -m for all other archs:
        *) ARCH=$( uname -m ) ;;
   esac
 fi
 
 CWD=$(pwd)
-TMP=${TMP:-/tmp/SBo}		# For consistency's sake, use this
+TMP=${TMP:-/tmp/SBo}
 PKG=$TMP/package-$PRGNAM
-UNZIPDIR=$TMP/$PRGNAM\_$VERSION
-DOCS="$UNZIPDIR/ChangeLog.txt $UNZIPDIR/COPYING.LESSER $UNZIPDIR/Readme.txt"
-OUTPUT=${OUTPUT:-/tmp}		# Drop the package in /tmp
+UNZIPDIR=$TMP/mygui-$PRGNAM$VERSION
+DOCS="$UNZIPDIR/ChangeLog.txt $UNZIPDIR/COPYING.MIT $UNZIPDIR/Readme.txt"
+OUTPUT=${OUTPUT:-/tmp}
 
 if [ "$ARCH" = "i486" ]; then
   SLKCFLAGS="-O2 -march=i486 -mtune=i686"
@@ -58,14 +56,14 @@ else
   LIBDIRSUFFIX=""
 fi
 
-set -e # Exit on most errors
+set -e
 
 rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
 cd $TMP
 rm -rf $PRGNAM-$VERSION
-unzip -o $CWD/$PRGNAM\_$VERSION
-cd $PRGNAM\_$VERSION
+tar xvf $CWD/$PRGNAM$VERSION.tar.gz
+cd mygui-$PRGNAM$VERSION
 chown -R root:root .
 find -L . \
  \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
@@ -76,8 +74,6 @@ find -L . \
 sed -i '71 i set(MYGUI_GCC_VISIBILITY_FLAGS "")' CMakeLists.txt
 sed -i 's/\${OIS_LIBRARIES}/${OIS_LIBRARIES} boost_system/g' Common/CMakeLists.txt
 
-# Your application will probably need different cmake flags; these are only
-# examples.  You might use 'ccmake' to see the available flags...
 mkdir -p build
 cd build
   cmake \
@@ -96,39 +92,26 @@ cd build
     -DMYGUI_BUILD_WRAPPER=FALSE \
     ..
 
-  make -j 2
+  make
   make install DESTDIR=$PKG
 cd ..
 
-# Strip binaries and libraries - this can be done with 'make install-strip'
-# in many source trees, and that's usually acceptable, if not, use this:
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-# Copy program documentation into the package
-# The included documentation varies from one application to another, so be sure
-# to adjust your script as needed
-# Also, include the SlackBuild script in the documentation directory
 mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
-cp -a \
-  $DOCS \
-  $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a $DOCS $PKG/usr/doc/$PRGNAM-$VERSION
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 
 # Ensure that the libraries are installed in the correct directory on 64-bit
 if [ "$ARCH" = "x86_64" ]; then
-    mv $PKG/usr/lib $PKG/usr/lib$LIBDIRSUFFIX
+    mv $PKG/usr/lib $PKG/usr/lib${LIBDIRSUFFIX}
     sed -i '3 s/\/lib/\/lib64/' $PKG/usr/lib$LIBDIRSUFFIX/pkgconfig/MYGUI.pc
 fi
 
-# Copy the slack-desc (and a custom doinst.sh if necessary) into ./install
 mkdir -p $PKG/install
 cat $CWD/slack-desc > $PKG/install/slack-desc
 cat $CWD/doinst.sh > $PKG/install/doinst.sh
 
-# Make the package; be sure to leave it in $OUTPUT
-# If package symlinks need to be created during install *before*
-# your custom contents of doinst.sh runs, then add the -p switch to
-# the makepkg command below -- see makepkg(8) for details
 cd $PKG
 /sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}
